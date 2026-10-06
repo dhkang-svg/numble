@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>numble</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f0f1a;
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 16px;
+  padding-bottom: 80px;
+}
+.header {
+  text-align: center;
+  padding: 20px 0 12px;
+}
+.header h1 {
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.header .sub {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+.btn-generate {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 16px auto;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+}
+.btn-generate:active {
+  transform: scale(0.97);
+}
+.result-section {
+  max-width: 400px;
+  margin: 0 auto;
+}
+.set-title {
+  font-size: 14px;
+  color: #a78bfa;
+  font-weight: 600;
+  margin: 20px 0 8px;
+  padding-left: 4px;
+}
+.game-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  background: #1a1a2e;
+  border-radius: 12px;
+}
+.game-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  width: 28px;
+  flex-shrink: 0;
+}
+.ball {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.ball.r1 { background: #f59e0b; }
+.ball.r2 { background: #3b82f6; }
+.ball.r3 { background: #ef4444; }
+.ball.r4 { background: #6b7280; }
+.ball.r5 { background: #10b981; }
+.ball.anchor {
+  box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(255,255,255,0.5);
+}
+.info-bar {
+  max-width: 400px;
+  margin: 12px auto;
+  padding: 10px 14px;
+  background: #1a1a2e;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.6;
+}
+.info-bar span { color: #a78bfa; font-weight: 600; }
+.data-section {
+  max-width: 400px;
+  margin: 24px auto 0;
+}
+.data-toggle {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #1a1a2e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+}
+.data-panel {
+  display: none;
+  margin-top: 10px;
+  padding: 14px;
+  background: #1a1a2e;
+  border-radius: 10px;
+}
+.data-panel.open { display: block; }
+.data-panel label {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+.data-panel input {
+  width: 100%;
+  padding: 10px;
+  background: #0f0f1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.data-panel .btn-add {
+  width: 100%;
+  padding: 10px;
+  background: #374151;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.data-panel .btn-add:active { background: #4b5563; }
+.data-list {
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: #777;
+  line-height: 1.8;
+}
+.latest-info {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+}
+.copy-row {
+  max-width: 400px;
+  margin: 16px auto 0;
+  text-align: center;
+}
+.btn-copy {
+  padding: 10px 24px;
+  background: #374151;
+  border: none;
+  border-radius: 10px;
+  color: #ccc;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-copy:active { background: #4b5563; }
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #6366f1;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 100;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>numble</h1>
+  <div class="sub">Lucky Number Generator</div>
+</div>
+
+<button class="btn-generate" onclick="generate()">번호 생성</button>
+
+<div id="result" class="result-section"></div>
+<div id="copyRow" class="copy-row" style="display:none;">
+  <button class="btn-copy" onclick="copyNumbers()">번호 복사</button>
+</div>
+
+<div class="data-section">
+  <button class="data-toggle" onclick="toggleData()">당첨번호 관리 (데이터 추가/확인)</button>
+  <div id="dataPanel" class="data-panel">
+    <label>회차</label>
+    <input type="number" id="inputRound" placeholder="예: 1245">
+    <label>당첨번호 (쉼표 구분)</label>
+    <input type="text" id="inputNumbers" placeholder="예: 1,13,18,26,34,38">
+    <label>보너스</label>
+    <input type="number" id="inputBonus" placeholder="예: 25">
+    <button class="btn-add" onclick="addRound()">추가</button>
+    <div class="data-list" id="dataList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// Historical Data (embedded + localStorage)
+// ============================================================
+const EMBEDDED_DATA = [
+  {round: 1211, numbers: [23,26,27,35,38,40], bonus: 10},
+  {round: 1212, numbers: [5,8,25,31,41,44], bonus: 45},
+  {round: 1213, numbers: [5,11,25,27,36,38], bonus: 2},
+  {round: 1214, numbers: [10,15,19,27,30,33], bonus: 14},
+  {round: 1215, numbers: [13,15,19,21,44,45], bonus: 39},
+  {round: 1216, numbers: [3,10,14,15,23,24], bonus: 25},
+  {round: 1217, numbers: [8,10,15,20,29,31], bonus: 41},
+  {round: 1218, numbers: [3,28,31,32,42,45], bonus: 25},
+  {round: 1219, numbers: [1,2,15,28,39,45], bonus: 31},
+  {round: 1220, numbers: [2,22,25,28,34,43], bonus: 16},
+  {round: 1221, numbers: [6,13,18,28,30,36], bonus: 9},
+  {round: 1222, numbers: [4,11,17,22,32,41], bonus: 34},
+  {round: 1223, numbers: [16,18,20,32,33,39], bonus: 26},
+  {round: 1224, numbers: [9,18,21,27,44,45], bonus: 28},
+  {round: 1225, numbers: [8,9,19,25,41,42], bonus: 33},
+  {round: 1226, numbers: [4,6,13,17,26,28], bonus: 41},
+  {round: 1227, numbers: [1,14,16,34,41,44], bonus: 13},
+  {round: 1228, numbers: [24,29,30,31,35,44], bonus: 1},
+  {round: 1229, numbers: [12,13,29,34,37,42], bonus: 16},
+  {round: 1230, numbers: [3,8,9,22,28,42], bonus: 45},
+  {round: 1231, numbers: [4,13,14,18,31,38], bonus: 15},
+  {round: 1232, numbers: [12,15,19,22,24,36], bonus: 3},
+  {round: 1233, numbers: [2,7,20,25,37,40], bonus: 29},
+  {round: 1234, numbers: [1,15,19,31,35,43], bonus: 27},
+  {round: 1235, numbers: [6,7,11,15,39,43], bonus: 20},
+  {round: 1236, numbers: [12,18,21,29,34,38], bonus: 10},
+  {round: 1237, numbers: [10,20,23,34,37,40], bonus: 36},
+  {round: 1238, numbers: [2,13,18,32,38,42], bonus: 22},
+  {round: 1239, numbers: [11,13,22,32,33,36], bonus: 8},
+  {round: 1240, numbers: [11,13,19,20,31,44], bonus: 27},
+  {round: 1241, numbers: [7,13,16,23,24,43], bonus: 30},
+  {round: 1243, numbers: [9,18,24,38,43,44], bonus: 35},
+  {round: 1244, numbers: [1,13,18,26,34,38], bonus: 25},
+];
+
+function loadHistory() {
+  const extra = JSON.parse(localStorage.getItem('lotto_extra') || '[]');
+  const all = [...EMBEDDED_DATA, ...extra];
+  const map = new Map();
+  all.forEach(d => map.set(d.round, d));
+  return Array.from(map.values()).sort((a, b) => a.round - b.round);
+}
+
+function saveExtra(data) {
+  const embeddedRounds = new Set(EMBEDDED_DATA.map(d => d.round));
+  const extra = data.filter(d => !embeddedRounds.has(d.round));
+  localStorage.setItem('lotto_extra', JSON.stringify(extra));
+}
+
+// ============================================================
+// v1.4 Algorithm (JS port)
+// ============================================================
+function seededRandom(seed) {
+  // Mulberry32
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+let rng = Math.random;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function sample(arr, k) {
+  const copy = [...arr];
+  shuffle(copy);
+  return copy.slice(0, k);
+}
+
+function selectPool(history, poolSize = 24) {
+  const recent = history.slice(-20);
+  const freq = {};
+  for (let i = 1; i <= 45; i++) freq[i] = 0;
+  recent.forEach(d => d.numbers.forEach(n => freq[n]++));
+
+  const expected = recent.length * 6 / 45;
+
+  function balanceScore(n) {
+    const deviation = Math.abs(freq[n] - expected);
+    let score = 10 - deviation * 2;
+    score += (rng() - 0.5) * 3; // jitter
+    return score;
+  }
+
+  const ranges = [
+    { nums: Array.from({length: 9}, (_, i) => i + 1), quota: 5 },
+    { nums: Array.from({length: 10}, (_, i) => i + 10), quota: 5 },
+    { nums: Array.from({length: 10}, (_, i) => i + 20), quota: 5 },
+    { nums: Array.from({length: 10}, (_, i) => i + 30), quota: 5 },
+    { nums: Array.from({length: 6}, (_, i) => i + 40), quota: 4 },
+  ];
+
+  const pool = [];
+  ranges.forEach(({ nums, quota }) => {
+    const scored = nums.map(n => ({ n, s: balanceScore(n) }));
+    scored.sort((a, b) => b.s - a.s);
+    scored.slice(0, quota).forEach(x => pool.push(x.n));
+  });
+
+  return pool.sort((a, b) => a - b);
+}
+
+function designAnchorGames(pool, nGames = 5, nAnchors = 6, nIter = 1500) {
+  if (pool.length < 24) {
+    const extra = [];
+    for (let i = 1; i <= 45; i++) if (!pool.includes(i)) extra.push(i);
+    shuffle(extra);
+    pool = [...pool, ...extra.slice(0, 24 - pool.length)].sort((a, b) => a - b);
+  }
+
+  let bestGames = null;
+  let bestScore = -1;
+
+  for (let iter = 0; iter < nIter; iter++) {
+    const anchors = sample(pool, nAnchors);
+    const anchorSet = new Set(anchors);
+    const singles = pool.filter(n => !anchorSet.has(n));
+
+    const gameAnchorCount = new Array(nGames).fill(0);
+    const anchorAssign = new Map();
+    const shuffledAnchors = [...anchors];
+    shuffle(shuffledAnchors);
+
+    let valid = true;
+    for (const anchor of shuffledAnchors) {
+      const available = [];
+      for (let g = 0; g < nGames; g++) {
+        if (gameAnchorCount[g] < 3) available.push(g);
+      }
+      if (available.length < 2) { valid = false; break; }
+      const chosen = sample(available, 2);
+      anchorAssign.set(anchor, chosen);
+      chosen.forEach(g => gameAnchorCount[g]++);
+    }
+    if (!valid) continue;
+
+    const games = Array.from({length: nGames}, () => []);
+    anchorAssign.forEach((gIdxs, anchor) => {
+      gIdxs.forEach(g => games[g].push(anchor));
+    });
+
+    const remaining = games.map(g => 6 - g.length);
+    const totalRemaining = remaining.reduce((a, b) => a + b, 0);
+    if (totalRemaining > singles.length) continue;
+
+    const shuffledSingles = [...singles];
+    shuffle(shuffledSingles);
+    let si = 0;
+    for (let g = 0; g < nGames; g++) {
+      for (let s = 0; s < remaining[g]; s++) {
+        if (si < shuffledSingles.length) games[g].push(shuffledSingles[si++]);
+      }
+    }
+
+    games.forEach(g => g.sort((a, b) => a - b));
+    if (games.some(g => g.length !== 6)) continue;
+    if (games.some(g => new Set(g).size !== 6)) continue;
+
+    let score = 0;
+    const coveredPairs = new Set();
+    games.forEach(game => {
+      for (let i = 0; i < game.length; i++)
+        for (let j = i + 1; j < game.length; j++)
+          coveredPairs.add(game[i] * 100 + game[j]);
+    });
+    score += coveredPairs.size * 2;
+
+    games.forEach(game => {
+      const gr = new Set(game.map(n => Math.floor((n - 1) / 10)));
+      if (gr.size >= 3) score += 5;
+      else if (gr.size >= 2) score += 2;
+      else score -= 10;
+
+      const odds = game.filter(n => n % 2 === 1).length;
+      if (odds >= 2 && odds <= 4) score += 3;
+      else score -= 5;
+    });
+
+    const anchorRanges = new Set(anchors.map(a => Math.floor((a - 1) / 10)));
+    score += anchorRanges.size * 3;
+
+    games.forEach(game => {
+      const nAnch = game.filter(n => anchorSet.has(n)).length;
+      if (nAnch >= 1 && nAnch <= 4) score += 2;
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestGames = games.map(g => [...g]);
+    }
+  }
+
+  if (!bestGames) {
+    bestGames = [];
+    for (let i = 0; i < nGames; i++) {
+      bestGames.push(sample(pool, 6).sort((a, b) => a - b));
+    }
+  }
+  return bestGames;
+}
+
+function pipeline(history, seed) {
+  rng = seededRandom(seed);
+  const pool = selectPool(history);
+  const games = designAnchorGames(pool);
+
+  const numCount = {};
+  games.forEach(g => g.forEach(n => numCount[n] = (numCount[n] || 0) + 1));
+  const anchors = Object.entries(numCount).filter(([_, c]) => c >= 2).map(([n]) => +n).sort((a, b) => a - b);
+  const unique = new Set();
+  games.forEach(g => g.forEach(n => unique.add(n)));
+
+  return { games, pool, anchors, coverage: unique.size };
+}
+
+// ============================================================
+// Generate & Render
+// ============================================================
+let lastGames = null;
+
+function generate() {
+  const history = loadHistory();
+  const latest = history[history.length - 1];
+  const nextRound = latest.round + 1;
+
+  // Run multiple seeds, pick best structure
+  let bestScore = -1;
+  let bestResult = null;
+  const baseSeed = Date.now();
+
+  for (let s = 0; s < 200; s++) {
+    const result = pipeline(history, baseSeed + s);
+    const unique = new Set();
+    result.games.forEach(g => g.forEach(n => unique.add(n)));
+
+    const pairs = new Set();
+    result.games.forEach(g => {
+      for (let i = 0; i < g.length; i++)
+        for (let j = i + 1; j < g.length; j++)
+          pairs.add(g[i] * 100 + g[j]);
+    });
+
+    let rangeScore = 0;
+    result.games.forEach(g => {
+      const gr = new Set(g.map(n => Math.floor((n - 1) / 10)));
+      const odds = g.filter(n => n % 2 === 1).length;
+      if (gr.size >= 3) rangeScore += 5;
+      if (odds >= 2 && odds <= 4) rangeScore += 3;
+    });
+
+    const total = unique.size * 3 + pairs.size + rangeScore;
+    if (total > bestScore) {
+      bestScore = total;
+      bestResult = result;
+    }
+  }
+
+  lastGames = bestResult;
+
+  // Render
+  const anchorSet = new Set(bestResult.anchors);
+  const labels = ['A', 'B', 'C', 'D', 'E'];
+  let html = '';
+
+  html += `<div class="info-bar">`;
+  html += `<span>${nextRound}회</span> 추천번호 &middot; `;
+  html += `커버리지: <span>${bestResult.coverage}/45</span> &middot; `;
+  html += `앵커: <span>${bestResult.anchors.join(', ')}</span>`;
+  html += `</div>`;
+
+  html += `<div class="set-title">SET 1 &mdash; 기본 조합</div>`;
+  bestResult.games.forEach((game, i) => {
+    html += renderGameRow(labels[i], game, anchorSet);
+  });
+
+  // Generate reshuffled set
+  rng = seededRandom(nextRound * 31 + 7 + baseSeed);
+  const reshuffled = designAnchorGames(bestResult.pool);
+  const reCount = {};
+  reshuffled.forEach(g => g.forEach(n => reCount[n] = (reCount[n] || 0) + 1));
+  const reAnchors = new Set(Object.entries(reCount).filter(([_, c]) => c >= 2).map(([n]) => +n));
+
+  html += `<div class="set-title">SET 2 &mdash; 리셔플 조합</div>`;
+  reshuffled.forEach((game, i) => {
+    html += renderGameRow('R' + (i + 1), game, reAnchors);
+  });
+
+  html += `<div class="latest-info">최근 데이터: ${latest.round}회 [${latest.numbers.join(', ')}]</div>`;
+
+  document.getElementById('result').innerHTML = html;
+  document.getElementById('copyRow').style.display = 'block';
+
+  // Store for copy
+  lastGames = { set1: bestResult.games, set2: reshuffled, round: nextRound };
+}
+
+function ballClass(n) {
+  if (n <= 10) return 'r1';
+  if (n <= 20) return 'r2';
+  if (n <= 30) return 'r3';
+  if (n <= 40) return 'r4';
+  return 'r5';
+}
+
+function renderGameRow(label, game, anchorSet) {
+  let html = `<div class="game-row"><div class="game-label">${label}</div>`;
+  game.forEach(n => {
+    const cls = ballClass(n) + (anchorSet.has(n) ? ' anchor' : '');
+    html += `<div class="ball ${cls}">${n}</div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+// ============================================================
+// Copy
+// ============================================================
+function copyNumbers() {
+  if (!lastGames) return;
+  const labels = ['A', 'B', 'C', 'D', 'E'];
+  let text = `[${lastGames.round}회 추천번호]\n\n`;
+  text += `--- SET 1 ---\n`;
+  lastGames.set1.forEach((g, i) => {
+    text += `${labels[i]}: ${g.join(', ')}\n`;
+  });
+  text += `\n--- SET 2 ---\n`;
+  lastGames.set2.forEach((g, i) => {
+    text += `R${i + 1}: ${g.join(', ')}\n`;
+  });
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('복사 완료'));
+  } else {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('복사 완료');
+  }
+}
+
+// ============================================================
+// Data Management
+// ============================================================
+function toggleData() {
+  const panel = document.getElementById('dataPanel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) renderDataList();
+}
+
+function addRound() {
+  const roundNum = parseInt(document.getElementById('inputRound').value);
+  const numsStr = document.getElementById('inputNumbers').value;
+  const bonus = parseInt(document.getElementById('inputBonus').value);
+
+  if (!roundNum || !numsStr) {
+    showToast('회차와 번호를 입력하세요');
+    return;
+  }
+
+  const numbers = numsStr.split(',').map(s => parseInt(s.trim())).filter(n => n >= 1 && n <= 45);
+  if (numbers.length !== 6) {
+    showToast('번호 6개를 입력하세요');
+    return;
+  }
+
+  const history = loadHistory();
+  const existing = history.find(d => d.round === roundNum);
+  if (existing) {
+    showToast(`${roundNum}회는 이미 있습니다`);
+    return;
+  }
+
+  history.push({ round: roundNum, numbers: numbers.sort((a, b) => a - b), bonus: bonus || 0 });
+  history.sort((a, b) => a.round - b.round);
+  saveExtra(history);
+
+  document.getElementById('inputRound').value = '';
+  document.getElementById('inputNumbers').value = '';
+  document.getElementById('inputBonus').value = '';
+
+  showToast(`${roundNum}회 추가 완료`);
+  renderDataList();
+}
+
+function renderDataList() {
+  const history = loadHistory();
+  const recent = history.slice(-15).reverse();
+  let html = '<strong style="color:#a78bfa">최근 15회차</strong><br>';
+  recent.forEach(d => {
+    html += `${d.round}회: ${d.numbers.join(', ')} + ${d.bonus}<br>`;
+  });
+  html += `<br>총 ${history.length}회차 데이터`;
+  document.getElementById('dataList').innerHTML = html;
+}
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+</script>
+</body>
+</html>
